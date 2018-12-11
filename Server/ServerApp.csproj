@@ -36,7 +36,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="NAudio, Version=1.8.5.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\Skapi\packages\NAudio.1.8.5\lib\net35\NAudio.dll</HintPath>
+      <HintPath>..\packages\NAudio.1.8.5\lib\net35\NAudio.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -102,7 +102,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Libraries\Noname\Noname\Noname.csproj">
+    <ProjectReference Include="..\..\..\Libraries\Noname\Noname\Noname.csproj">
       <Project>{95A5D098-A1B4-4951-9AFE-EB2BC4AB230A}</Project>
       <Name>Noname</Name>
     </ProjectReference>
