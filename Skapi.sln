@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientApp", "Client\ClientA
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerApp", "Server\ServerApp.csproj", "{40D3058C-C446-4E87-8176-F3FCEBEB433E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WaveTest", "WaveTest\WaveTest.csproj", "{BB45BB71-5B6B-4D2E-8AE3-2890984FB5E8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{40D3058C-C446-4E87-8176-F3FCEBEB433E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{40D3058C-C446-4E87-8176-F3FCEBEB433E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{40D3058C-C446-4E87-8176-F3FCEBEB433E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB45BB71-5B6B-4D2E-8AE3-2890984FB5E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB45BB71-5B6B-4D2E-8AE3-2890984FB5E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB45BB71-5B6B-4D2E-8AE3-2890984FB5E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB45BB71-5B6B-4D2E-8AE3-2890984FB5E8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

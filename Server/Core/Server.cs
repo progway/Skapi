@@ -13,7 +13,7 @@ namespace ServerApp.Core
     public class Server : RPCServer<Client>
     {
         private readonly List<Client> _authorizedClients;
-        private WaveFormat _waveFormat = new WaveFormat(50000, 1);
+        private WaveFormat _waveFormat = new WaveFormat(44100, 1);
         private BufferedWaveProvider _bufferedWaveProvider;
         private WaveInEvent _waveIn;
         private WaveOutEvent _waveOut;
@@ -21,6 +21,7 @@ namespace ServerApp.Core
         public Server(int port) : base(port)
         {
             ClientConnected += Server_ClientConnected;
+            Start();
             _authorizedClients = new List<Client>();
         }
 

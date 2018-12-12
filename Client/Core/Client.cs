@@ -13,7 +13,7 @@ namespace ClientApp.Core
 {
     public class Client : RPCClient
     {
-        private WaveFormat _waveFormat = new WaveFormat(50000, 1);
+        private WaveFormat _waveFormat = new WaveFormat(44100, 1);
         private BufferedWaveProvider _bufferedWaveProvider;
         private WaveInEvent _waveIn;
         private WaveOutEvent _waveOut;
