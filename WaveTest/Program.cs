@@ -1,22 +1,19 @@
-﻿using NAudio.Mixer;
+﻿using NAudio.Codecs;
 using NAudio.Wave;
-using NAudio.Wave.Compression;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace WaveTest
 {
-    class Program
+    internal class Program
     {
         static private WaveFormat _waveFormat = new WaveFormat(44100, 1);
         static private BufferedWaveProvider _bufferedWaveProvider;
         static private WaveInEvent _waveIn;
         static private WaveOutEvent _waveOut;
+        private static readonly G722CodecState _g722CodecState = new G722CodecState(48000, G722Flags.SampleRate8000);
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             _bufferedWaveProvider = new BufferedWaveProvider(_waveFormat);
 
@@ -51,11 +48,19 @@ namespace WaveTest
         }
         static private void WaveIn_DataAvailable(object sender, WaveInEventArgs e)
         {
-            int sum = 0;
-            for (int i = 0; i < e.BytesRecorded; i++)
-                sum +=e.Buffer[i];
-            Console.WriteLine(e.BytesRecorded + " " + sum);
-            _bufferedWaveProvider.AddSamples(e.Buffer, 0, e.BytesRecorded);
+            G722Codec codec = new G722Codec();
+            short[] newData = new short[e.BytesRecorded / 2];
+            for (int i = 0; i < e.BytesRecorded/2; i++)
+            {
+                newData[i] = (short)(e.Buffer[2 * i] >> 8);
+                newData[i] += e.Buffer[2 * i + 1];
+            }
+            byte[] buffer = new byte[newData.Length*2];
+            //for (int i = 0; i < buffer.Length; i++)
+                //buffer[i] = ALawEncoder.LinearToALawSample(newData[i]);
+            
+            codec.Encode(_g722CodecState, buffer, newData, newData.Length);
+            _bufferedWaveProvider.AddSamples(buffer, 0, buffer.Length);
         }
     }
 }

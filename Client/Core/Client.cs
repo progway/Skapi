@@ -20,28 +20,23 @@ namespace ClientApp.Core
 
         public Client(string ipAddress, int port) : base(ipAddress, port) { }
 
-        public RemoteProcedure<string, string, string> SignIn { get; private set; }
-        public RemoteProcedure<string, string> LogIn { get; private set; }
-        public RemoteProcedure<IEnumerable<byte>> SendBytes { get; private set; }
+        public RemoteProcedure<string> LogIn { get; private set; }
+        public RemoteProcedure<IEnumerable<byte>> SendMicrophoneBytes { get; private set; }
 
         protected override void InitializeLocalProcedures()
         {
-            DefineLocalProcedure(false, GetBytes, ReliableBitConverter.GetInstance(IEnumerableVariableLengthBitConverter.GetInstance(ByteBitConverter.Instance)));
+            DefineLocalProcedure(false, GetSoundBytes, ReliableBitConverter.GetInstance(IEnumerableVariableLengthBitConverter.GetInstance(ByteBitConverter.Instance)));
         }
         protected override void InitializeRemoteProcedures()
         {
-            SignIn = DefineRemoteProcedure(StringBitConverter.UnicodeReliableInstance, StringBitConverter.UnicodeReliableInstance, StringBitConverter.UnicodeReliableInstance);
-            LogIn = DefineRemoteProcedure(StringBitConverter.UnicodeReliableInstance, StringBitConverter.UnicodeReliableInstance);
-            SendBytes = DefineRemoteProcedure(ReliableBitConverter.GetInstance(IEnumerableVariableLengthBitConverter.GetInstance(ByteBitConverter.Instance)));
+            LogIn = DefineRemoteProcedure(StringBitConverter.UnicodeReliableInstance);
+            SendMicrophoneBytes = DefineRemoteProcedure(ReliableBitConverter.GetInstance(IEnumerableVariableLengthBitConverter.GetInstance(ByteBitConverter.Instance)));
         }
 
-        private void GetBytes(IEnumerable<byte> bytes)
-        {
-            _bufferedWaveProvider.AddSamples(bytes.ToArray(), 0, bytes.Count());
-        }
+        private void GetSoundBytes(IEnumerable<byte> bytes) => _bufferedWaveProvider.AddSamples(bytes.ToArray(), 0, bytes.Count());
 
         private void WaveIn_RecordingStopped(object sender, StoppedEventArgs e) => throw new NotImplementedException();
-        private void WaveIn_DataAvailable(object sender, WaveInEventArgs e) => UDPCall(SendBytes, e.Buffer);
+        private void WaveIn_DataAvailable(object sender, WaveInEventArgs e) => UDPCall(SendMicrophoneBytes, e.Buffer);
 
         public void Run()
         {
@@ -59,6 +54,7 @@ namespace ClientApp.Core
             _waveOut = new WaveOutEvent()
             {
                 DeviceNumber = 0,
+                DesiredLatency = 100,
             };
             _waveOut.Init(_bufferedWaveProvider);
 
