@@ -8,8 +8,30 @@ namespace ServerApp.Core
 {
     public class Conference
     {
-        public Conference(List<Client> clients) => Clients = clients ?? throw new ArgumentNullException(nameof(clients));
+        public Conference(Client creator, IEnumerable<Client> clients)
+        {
+            Creator = creator;
+            Clients = clients.ToList() ?? throw new ArgumentNullException(nameof(clients));
+        }
 
+        public Client Creator;
         public List<Client> Clients { get; private set; }
+
+        public bool AddClient(Client client)
+        {
+            if (Clients.Contains(client))
+                return false;
+
+            Clients.Add(client);
+            return true;
+        }
+        public bool RemoveClient(Client client)
+        {
+            if (Clients.Contains(client))
+                return false;
+
+            Clients.Add(client);
+            return true;
+        }
     }
 }

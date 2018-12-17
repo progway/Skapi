@@ -1,12 +1,9 @@
-﻿using NAudio.Wave;
-using Noname.BitConversion;
+﻿using Noname.BitConversion;
 using Noname.BitConversion.System;
 using Noname.BitConversion.System.Collections.Generic;
 using Noname.Net.RPC;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace ServerApp.Core
 {
@@ -19,19 +16,25 @@ namespace ServerApp.Core
         {
             Start();
             _authorizedClients = new List<Client>();
+            _conferences = new List<Conference>();
         }
 
-        public RemoteProcedure<IEnumerable<byte>> SendBytes { get; private set; }
+        public RemoteProcedure<IEnumerable<byte>> SendSoundBytes { get; private set; }
+        public RemoteProcedure<IEnumerable<string>> SendOnlineUsers { get; private set; }
 
         protected override void InitializeLocalProcedures()
         {
             DefineLocalProcedure(false, LogIn, StringBitConverter.UnicodeReliableInstance);
-            DefineLocalProcedure(false, GetBytes, ReliableBitConverter.GetInstance(IEnumerableVariableLengthBitConverter.GetInstance(ByteBitConverter.Instance)));
+            DefineLocalProcedure(false, GetMicrophoneBytes, ReliableBitConverter.GetInstance(IEnumerableVariableLengthBitConverter.GetInstance(ByteBitConverter.Instance)));
+            DefineLocalProcedure(false, RequestOnGetOnlineUsers);
         }
         protected override void InitializeRemoteProcedures()
         {
-            SendBytes = DefineRemoteProcedure(ReliableBitConverter.GetInstance(IEnumerableVariableLengthBitConverter.GetInstance(ByteBitConverter.Instance)));
+            SendSoundBytes = DefineRemoteProcedure(ReliableBitConverter.GetInstance(IEnumerableVariableLengthBitConverter.GetInstance(ByteBitConverter.Instance)));
+            SendOnlineUsers = DefineRemoteProcedure(IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
         }
+
+        private void CreateConference(Client creator, IEnumerable<Client> clients) => _conferences.Add(new Conference(creator, clients));
 
         private void LogIn(Client client, string nickname)
         {
@@ -40,6 +43,7 @@ namespace ServerApp.Core
             client.Nickname = nickname;
             _authorizedClients.Add(client);
         }
-        private void GetBytes(Client client, IEnumerable<byte> bytes) { }
+        private void GetMicrophoneBytes(Client client, IEnumerable<byte> bytes) => UDPCall(SendSoundBytes, bytes, client.Conference.Clients.Where(x => x != client));
+        private void RequestOnGetOnlineUsers(Client client) => TCPCall(SendOnlineUsers, _authorizedClients.Where(x => x.Nickname != client.Nickname).Select(x => x.Nickname), client);
     }
 }

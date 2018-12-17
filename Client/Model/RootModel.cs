@@ -14,7 +14,7 @@ namespace ClientApp.Model
 
         public RootModel() { } 
 
-        private void _client_Connected() => _client.Run();
+        private void _client_Connected() => _client.MicrophoneOn();
 
         public void Connect(string address, int port)
         {

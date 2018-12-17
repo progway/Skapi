@@ -2,11 +2,11 @@
 using Noname.BitConversion;
 using Noname.BitConversion.System;
 using Noname.BitConversion.System.Collections.Generic;
+using Noname.ComponentModel;
 using Noname.Net.RPC;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace ClientApp.Core
@@ -18,27 +18,39 @@ namespace ClientApp.Core
         private WaveInEvent _waveIn;
         private WaveOutEvent _waveOut;
 
-        public Client(string ipAddress, int port) : base(ipAddress, port) { }
+        public Client(string ipAddress, int port) : base(ipAddress, port) => OnlineUsers = new List<string>();
 
         public RemoteProcedure<string> LogIn { get; private set; }
         public RemoteProcedure<IEnumerable<byte>> SendMicrophoneBytes { get; private set; }
+        public RemoteProcedure RequestOnGetOnlineUsers { get; private set; }
+        public List<string> OnlineUsers { get; private set; }
 
         protected override void InitializeLocalProcedures()
         {
             DefineLocalProcedure(false, GetSoundBytes, ReliableBitConverter.GetInstance(IEnumerableVariableLengthBitConverter.GetInstance(ByteBitConverter.Instance)));
+            DefineLocalProcedure(false, GetOnlineUsers, IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
         }
         protected override void InitializeRemoteProcedures()
         {
             LogIn = DefineRemoteProcedure(StringBitConverter.UnicodeReliableInstance);
             SendMicrophoneBytes = DefineRemoteProcedure(ReliableBitConverter.GetInstance(IEnumerableVariableLengthBitConverter.GetInstance(ByteBitConverter.Instance)));
+            RequestOnGetOnlineUsers = DefineRemoteProcedure();
         }
 
         private void GetSoundBytes(IEnumerable<byte> bytes) => _bufferedWaveProvider.AddSamples(bytes.ToArray(), 0, bytes.Count());
+        private void GetOnlineUsers(IEnumerable<string> names)
+        {
+            OnlineUsers.Clear();
+            OnlineUsers.AddRange(names);
+            OnlineUsersUpdated?.Invoke(this, EventArgs.Empty);
+        }
 
         private void WaveIn_RecordingStopped(object sender, StoppedEventArgs e) => throw new NotImplementedException();
         private void WaveIn_DataAvailable(object sender, WaveInEventArgs e) => UDPCall(SendMicrophoneBytes, e.Buffer);
 
-        public void Run()
+        public event EventHandler OnlineUsersUpdated;
+
+        public void MicrophoneOn()
         {
             _bufferedWaveProvider = new BufferedWaveProvider(_waveFormat);
 
