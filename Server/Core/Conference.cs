@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ServerApp.Core
 {
@@ -11,27 +9,21 @@ namespace ServerApp.Core
         public Conference(Client creator, IEnumerable<Client> clients)
         {
             Creator = creator;
-            Clients = clients.ToList() ?? throw new ArgumentNullException(nameof(clients));
+            Clients = clients.Select(client => new ConferenceUser(client)).ToList() ?? throw new ArgumentNullException(nameof(clients));
+            Clients.Add(new ConferenceUser(creator));
         }
 
         public Client Creator;
-        public List<Client> Clients { get; private set; }
+        public List<ConferenceUser> Clients { get; private set; }
 
         public bool AddClient(Client client)
         {
-            if (Clients.Contains(client))
+            if (Clients.Select(x => x.Client).Contains(client))
                 return false;
 
-            Clients.Add(client);
+            Clients.Add(new ConferenceUser(client));
             return true;
         }
-        public bool RemoveClient(Client client)
-        {
-            if (Clients.Contains(client))
-                return false;
-
-            Clients.Add(client);
-            return true;
-        }
+        public void RemoveClient(Client client) => Clients.Remove(Clients.First(x => x.Client == client));
     }
 }

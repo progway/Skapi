@@ -13,9 +13,9 @@ namespace ClientApp.ViewModel
         }
 
         public RootModel Model { get; }
+
         public string Address { get; set; }
         public string Port { get; set; }
-
         public Command Connect { get; }
 
         private void OnConnect() => Model.Connect(Address, int.Parse(Port));
