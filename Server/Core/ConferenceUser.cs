@@ -15,6 +15,6 @@ namespace ServerApp.Core
         public Client Client { get; private set; }
         public bool InConference { get; set; }
 
-        public void SendRequestToEnterConference(ConferenceUser creator, List<ConferenceUser> conferenceUsers) => NetworkManager.SendRequestToEnterConference(Client, creator.Client, conferenceUsers.Select(x => x.Client));
+        public void SendRequestToEnterConference(int id, ConferenceUser creator, List<ConferenceUser> conferenceUsers) => NetworkManager.SendRequestToEnterConference(id, Client, creator.Client, conferenceUsers.Select(x => x.Client).Where(x=> x!= Client));
     }
 }

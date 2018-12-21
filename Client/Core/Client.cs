@@ -29,13 +29,14 @@ namespace ClientApp.Core
         public RemoteProcedure RequestOnGetOnlineUsers { get; private set; }
         public RemoteProcedure<bool> SwitchSoundState { get; private set; }
         public RemoteProcedure<IEnumerable<string>> RequestOnCreateConference { get; private set; }
+        public RemoteProcedure<int, bool> ResponseOnEntryConference { get; private set; }
 
         protected override void InitializeLocalProcedures()
         {
             DefineLocalProcedure(false, LogInError);
             DefineLocalProcedure(false, GetOnlineUsers, IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
             DefineLocalProcedure(false, GetSoundBytes, ReliableBitConverter.GetInstance(IEnumerableVariableLengthBitConverter.GetInstance(ByteBitConverter.Instance)));
-            DefineLocalProcedure(false, GetRequestToEnterConference, StringBitConverter.ASCIIReliableInstance, IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
+            DefineLocalProcedure(false, GetRequestToEntryConference, Int32BitConverter.Instance, StringBitConverter.ASCIIReliableInstance, IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
         }
         protected override void InitializeRemoteProcedures()
         {
@@ -44,12 +45,13 @@ namespace ClientApp.Core
             RequestOnGetOnlineUsers = DefineRemoteProcedure();
             SwitchSoundState = DefineRemoteProcedure(BooleanBitConverter.Instance);
             RequestOnCreateConference = DefineRemoteProcedure(IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
+            ResponseOnEntryConference = DefineRemoteProcedure(Int32BitConverter.Instance, BooleanBitConverter.Instance);
         }
 
         private void LogInError() => OnLogInError?.Invoke(this, EventArgs.Empty);
         private void GetOnlineUsers(IEnumerable<string> names) => OnlineUsersUpdated?.Invoke(this, new LogInEventArgs(names));
         private void GetSoundBytes(IEnumerable<byte> bytes) => _bufferedWaveProvider.AddSamples(bytes.ToArray(), 0, bytes.Count());
-        private void GetRequestToEnterConference(string creator, IEnumerable<string> names) => throw new NotImplementedException();
+        private void GetRequestToEntryConference(int id, string creator, IEnumerable<string> names) => throw new NotImplementedException();
         private void WaveIn_RecordingStopped(object sender, StoppedEventArgs e) => throw new NotImplementedException();
         private void WaveIn_DataAvailable(object sender, WaveInEventArgs e) => UDPCall(SendMicrophoneBytes, e.Buffer);
          
