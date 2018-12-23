@@ -11,10 +11,24 @@ namespace ServerApp.Core
 
         static Conference() => _idController = new IDController();
 
-        private List<Client> _soundOnUsers;
+        private struct SoundBufferItem
+        {
+            public Client Client;
+            public IEnumerable<byte> Bytes;
+
+            public SoundBufferItem(Client client, IEnumerable<byte> bytes)
+            {
+                Client = client ?? throw new ArgumentNullException(nameof(client));
+                Bytes = bytes ?? throw new ArgumentNullException(nameof(bytes));
+            }
+        }
+        private readonly List<Client> _soundOnUsers;
+        private readonly Queue<SoundBufferItem> _soundBuffer;
 
         public Conference(Client creator, IEnumerable<Client> clients, out int id)
         {
+            _soundOnUsers = new List<Client>();
+            _soundBuffer = new Queue<SoundBufferItem>();
             id = _idController.GetID();
             Id = id;
             Creator = new ConferenceUser(creator);
@@ -22,7 +36,6 @@ namespace ServerApp.Core
             foreach (ConferenceUser user in Clients.Values)
                 user.SendRequestToEnterConference(Id, Creator, Clients.Values.ToList());
             Clients.Add(Creator.Client, Creator);
-            _soundOnUsers = new List<Client>();
             foreach (Client client in Clients.Keys)
             {
                 client.IsSoundMuteSwitched += Client_IsSoundMuteSwitched;
@@ -40,9 +53,7 @@ namespace ServerApp.Core
                 _soundOnUsers.Add(client);
             }
             else
-            {
                 _soundOnUsers.Remove(client);
-            }
         }
 
         public ConferenceUser Creator;
@@ -51,7 +62,14 @@ namespace ServerApp.Core
 
         private void SendSound()
         {
-
+            lock(_soundBuffer)
+            {
+                while(_soundBuffer.Count != 0)
+                {
+                    SoundBufferItem soundBufferItem = _soundBuffer.Dequeue();
+                    NetworkManager.SendSoundBytes(soundBufferItem.Bytes, _soundOnUsers.Where(x => x != soundBufferItem.Client));
+                }
+            }
         }
 
         public bool AddClient(Client client)
@@ -65,7 +83,8 @@ namespace ServerApp.Core
         public void RemoveClient(Client client) => Clients.Remove(client);
         public void GetMicrophoneBytes(Client client, IEnumerable<byte> bytes)
         {
-            //UDPCall(SendSoundBytes, bytes, client.Conference.Clients.Values.Select(x => x.Client).Where(x => x != client));
+            _soundBuffer.Enqueue(new SoundBufferItem(client, bytes));
+            SendSound();
         }
 
         public void Destroy() => _idController.ReturnID(Id);

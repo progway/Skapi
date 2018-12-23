@@ -5,14 +5,29 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:ClientApp.ViewModel"
         mc:Ignorable="d"
-        Title="RootView" DataContext="{x:Type vm:RootViewModel}" Height="450" Width="800">
+        d:DataContext="{d:DesignInstance Type=vm:RootViewModel, IsDesignTimeCreatable=True}" 
+        Title="RootView"  Height="450" Width="800" >
     <Grid>
-        <StackPanel>
+        <StackPanel >
             <TextBlock Text="ip"/>
             <TextBox Text="{Binding Address}"></TextBox>
             <TextBlock Text="port"/>
             <TextBox Text="{Binding Port}"></TextBox>
             <Button Command="{Binding Connect}">Connect</Button>
+            <ListView ItemsSource="{Binding Model.OnlineUsers}">
+                <ListView.ItemTemplate>
+                    <DataTemplate >
+                        <StackPanel Orientation="Horizontal">
+                            <Button Width="30" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Grid}}, Path=DataContext.UserCall}" CommandParameter="{Binding}">call</Button>
+                            <TextBlock Text="{Binding Name}">
+                                <TextBlock.InputBindings>
+                                    <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Grid}}, Path=DataContext.UserCall}" CommandParameter="{Binding }" MouseAction="LeftDoubleClick" />
+                                </TextBlock.InputBindings>
+                            </TextBlock>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
         </StackPanel>
     </Grid>
 </Window>

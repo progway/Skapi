@@ -13,6 +13,5 @@ namespace ServerApp.Model
         private readonly Server _server;
 
         public RootModel() => _server = new Server(25000);
-
     }
 }
