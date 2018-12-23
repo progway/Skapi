@@ -1,7 +1,8 @@
-﻿using ClientApp.Model;
+﻿using ClientApp.Core;
+using ClientApp.Model;
+using ClientApp.View;
 using Noname.ComponentModel;
 using Noname.Windows.MVVM;
-using System.Windows;
 
 namespace ClientApp.ViewModel
 {
@@ -10,21 +11,21 @@ namespace ClientApp.ViewModel
         public RootViewModel()
         {
             Model = new RootModel();
+            Model.OnGetRequestToEntryConference += Model_OnGetRequestToEntryConference;
             Connect = new Command(OnConnect);
             UserCall = new Command<ClientModel>(OnUserCall);
         }
+
+        private void Model_OnGetRequestToEntryConference(object sender, EntryConferenceEventArgs e) => new ConferenceView(new ConferenceModel(Model, e.Id, e.Creator, e.Users)).ShowDialog();
 
         public RootModel Model { get; }
 
         public string Address { get; set; }
         public string Port { get; set; }
         public Command Connect { get; }
-        public Command<ClientModel> UserCall { get;}
+        public Command<ClientModel> UserCall { get; }
 
-        private void OnConnect() => Model.Connect(Address, int.Parse(Port));
-        private void OnUserCall(ClientModel client)
-        {
-            MessageBox.Show("123");
-        }
+        private void OnConnect() => Model.Connect(Address, int.Parse(Port)); //new ConferenceView(new ConferenceModel(Model, 1, "1231", new string[] { "12345", "1234521" })).Show();
+        private void OnUserCall(ClientModel client) => Model.Call(client);
     }
 }

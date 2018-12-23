@@ -61,9 +61,15 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Core\EntryConferenceEventArgs.cs" />
     <Compile Include="Core\LogInEventArgs.cs" />
+    <Compile Include="Model\ConferenceModel.cs" />
     <Compile Include="Model\ClientModel.cs" />
+    <Compile Include="ViewModel\ConferenceViewModel.cs" />
     <Compile Include="ViewModel\RootViewModel.cs" />
+    <Compile Include="View\ConferenceView.xaml.cs">
+      <DependentUpon>ConferenceView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\RootView.xaml.cs">
       <DependentUpon>RootView.xaml</DependentUpon>
     </Compile>
@@ -72,6 +78,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Core\Client.cs" />
+    <Page Include="View\ConferenceView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="View\RootView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

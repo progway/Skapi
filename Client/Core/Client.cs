@@ -17,12 +17,12 @@ namespace ClientApp.Core
         private BufferedWaveProvider _bufferedWaveProvider;
         private WaveInEvent _waveIn;
         private WaveOutEvent _waveOut;
-        private bool _isSoundOn;
+        private bool _isSoundActive;
 
         public Client(string ipAddress, int port) : base(ipAddress, port) { }
 
-        public bool IsMicrophoneOn { get; set; }
-        public bool IsSoundOn { get => _isSoundOn; set { _isSoundOn = value; TCPCall(SwitchSoundState, value); } }
+        public bool IsMicrophoneActive { get; set;  }
+        public bool IsSoundActive { get => _isSoundActive; set { _isSoundActive = value; TCPCall(SwitchSoundState, value); } }
 
         public RemoteProcedure<string> LogIn { get; private set; }
         public RemoteProcedure<IEnumerable<byte>> SendMicrophoneBytes { get; private set; }
@@ -51,9 +51,13 @@ namespace ClientApp.Core
         private void LogInError() => OnLogInError?.Invoke(this, EventArgs.Empty);
         private void GetOnlineUsers(IEnumerable<string> names) => OnlineUsersUpdated?.Invoke(this, new LogInEventArgs(names));
         private void GetSoundBytes(IEnumerable<byte> bytes) => _bufferedWaveProvider.AddSamples(bytes.ToArray(), 0, bytes.Count());
-        private void GetRequestToEntryConference(int id, string creator, IEnumerable<string> names) => throw new NotImplementedException();
+        private void GetRequestToEntryConference(int id, string creator, IEnumerable<string> names) => OnGetRequestToEntryConference?.Invoke(this, new EntryConferenceEventArgs(id, creator, names));
         private void WaveIn_RecordingStopped(object sender, StoppedEventArgs e) => throw new NotImplementedException();
-        private void WaveIn_DataAvailable(object sender, WaveInEventArgs e) => UDPCall(SendMicrophoneBytes, e.Buffer);
+        private void WaveIn_DataAvailable(object sender, WaveInEventArgs e)
+        {
+            if(IsMicrophoneActive)
+                UDPCall(SendMicrophoneBytes, e.Buffer);
+        }
          
         public void MicrophoneOn()
         {
@@ -81,8 +85,11 @@ namespace ClientApp.Core
             Task task2 = new Task(() => { _waveOut.Play(); while (true) { } });
             task2.Start();
         }
+        public void Call(string client) => TCPCall(RequestOnCreateConference, new string[] { client });
+        public void Call(IEnumerable<string> clients) => TCPCall(RequestOnCreateConference, clients);
 
         public event EventHandler OnLogInError;
         public event EventHandler<LogInEventArgs> OnlineUsersUpdated;
+        public event EventHandler<EntryConferenceEventArgs> OnGetRequestToEntryConference;
     }
 }
