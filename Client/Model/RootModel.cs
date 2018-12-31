@@ -13,6 +13,7 @@ namespace ClientApp.Model
         public RootModel() => OnlineUsers = new ObservableCollection<ClientModel>();
 
         public bool IsOnline { get; set; }
+        public string Nickname { get; set; }
         public ObservableCollection<ClientModel> OnlineUsers { get; set; }
         public event EventHandler<EntryConferenceEventArgs> OnGetRequestToEntryConference;
         public bool IsMicrophoneActive { get => _client.IsMicrophoneActive; set => _client.IsMicrophoneActive = value; }
@@ -30,7 +31,11 @@ namespace ClientApp.Model
         }
         public void Call(ClientModel clientModel) => _client.Call(clientModel.Name.Value);
 
-        private void _client_Connected() => IsOnline = true;
+        private void _client_Connected()
+        {
+            IsOnline = true;
+            _client.Authorization(Nickname);
+        }
         private void _client_Disconnected() => IsOnline = false;
         private void _client_FailedToConnect() => _client.Start();
         private void _client_OnLogInError(object sender, EventArgs e) => MessageBox.Show("Govno nickname! Please, try to create new nickname");

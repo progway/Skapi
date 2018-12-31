@@ -26,12 +26,12 @@ namespace ServerApp.Core
 
         protected override void InitializeLocalProcedures()
         {
-            DefineLocalProcedure(false, LogIn, StringBitConverter.ASCIIReliableInstance);
-            DefineLocalProcedure(false, GetMicrophoneBytes, ReliableBitConverter.GetInstance(IEnumerableVariableLengthBitConverter.GetInstance(ByteBitConverter.Instance)));
-            DefineLocalProcedure(false, RequestOnGetOnlineUsers);
-            DefineLocalProcedure(false, SwitchSoundState, BooleanBitConverter.Instance);
-            DefineLocalProcedure(false, RequestOnCreateConference, IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
-            DefineLocalProcedure(false, ResponseOnEntryConference, Int32BitConverter.Instance, BooleanBitConverter.Instance);
+            DefineLocalProcedure(true, LogIn, StringBitConverter.ASCIIReliableInstance);
+            DefineLocalProcedure(true, GetMicrophoneBytes, ReliableBitConverter.GetInstance(IEnumerableVariableLengthBitConverter.GetInstance(ByteBitConverter.Instance)));
+            DefineLocalProcedure(true, RequestOnGetOnlineUsers);
+            DefineLocalProcedure(true, SwitchSoundState, BooleanBitConverter.Instance);
+            DefineLocalProcedure(true, RequestOnCreateConference, IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
+            DefineLocalProcedure(true, ResponseOnEntryConference, Int32BitConverter.Instance, BooleanBitConverter.Instance);
         }
         protected override void InitializeRemoteProcedures()
         {
@@ -55,7 +55,7 @@ namespace ServerApp.Core
             _authorizedClients.Add(client);
             TCPCall(SendOnlineUsers, _authorizedClients.Select(x => x.Nickname));
         }
-        private void GetMicrophoneBytes(Client client, IEnumerable<byte> bytes) => client.Conference.GetMicrophoneBytes(client, bytes); 
+        private void GetMicrophoneBytes(Client client, IEnumerable<byte> bytes) => client.Conference.GetMicrophoneBytes(client, bytes);
         private void RequestOnGetOnlineUsers(Client client) => TCPCall(SendOnlineUsers, _authorizedClients.Where(x => x.Nickname != client.Nickname).Select(x => x.Nickname), client);
         private void SwitchSoundState(Client client, bool state) => client.IsSoundMute = state;
         private void RequestOnCreateConference(Client client, IEnumerable<string> users)
@@ -65,7 +65,7 @@ namespace ServerApp.Core
         }
         private void ResponseOnEntryConference(Client client, int id, bool state)
         {
-            if(state == true)
+            if (state == true)
             {
                 if (_conferences.TryGetValue(id, out Conference conference))
                 {

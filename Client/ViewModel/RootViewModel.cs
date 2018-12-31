@@ -25,7 +25,7 @@ namespace ClientApp.ViewModel
         public Command Connect { get; }
         public Command<ClientModel> UserCall { get; }
 
-        private void OnConnect() => Model.Connect(Address, int.Parse(Port)); //new ConferenceView(new ConferenceModel(Model, 1, "1231", new string[] { "12345", "1234521" })).Show();
+        private void OnConnect() => Model.Connect(Address, int.Parse(Port));
         private void OnUserCall(ClientModel client) => Model.Call(client);
     }
 }

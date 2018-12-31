@@ -9,10 +9,12 @@
         Title="RootView"  Height="450" Width="800" >
     <Grid>
         <StackPanel >
-            <TextBlock Text="ip"/>
+            <TextBlock Text="ip:"/>
             <TextBox Text="{Binding Address}"></TextBox>
-            <TextBlock Text="port"/>
+            <TextBlock Text="port:"/>
             <TextBox Text="{Binding Port}"></TextBox>
+            <TextBlock Text="nickname:"/>
+            <TextBox Text="{Binding Model.Nickname}"></TextBox>
             <Button Command="{Binding Connect}">Connect</Button>
             <ListView ItemsSource="{Binding Model.OnlineUsers}">
                 <ListView.ItemTemplate>

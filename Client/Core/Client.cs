@@ -33,10 +33,10 @@ namespace ClientApp.Core
 
         protected override void InitializeLocalProcedures()
         {
-            DefineLocalProcedure(false, LogInError);
-            DefineLocalProcedure(false, GetOnlineUsers, IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
-            DefineLocalProcedure(false, GetSoundBytes, ReliableBitConverter.GetInstance(IEnumerableVariableLengthBitConverter.GetInstance(ByteBitConverter.Instance)));
-            DefineLocalProcedure(false, GetRequestToEntryConference, Int32BitConverter.Instance, StringBitConverter.ASCIIReliableInstance, IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
+            DefineLocalProcedure(true, LogInError);
+            DefineLocalProcedure(true, GetOnlineUsers, IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
+            DefineLocalProcedure(true, GetSoundBytes, ReliableBitConverter.GetInstance(IEnumerableVariableLengthBitConverter.GetInstance(ByteBitConverter.Instance)));
+            DefineLocalProcedure(true, GetRequestToEntryConference, Int32BitConverter.Instance, StringBitConverter.ASCIIReliableInstance, IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
         }
         protected override void InitializeRemoteProcedures()
         {
@@ -85,6 +85,7 @@ namespace ClientApp.Core
             Task task2 = new Task(() => { _waveOut.Play(); while (true) { } });
             task2.Start();
         }
+        public void Authorization(string nickname) => TCPCall(LogIn, nickname);
         public void Call(string client) => TCPCall(RequestOnCreateConference, new string[] { client });
         public void Call(IEnumerable<string> clients) => TCPCall(RequestOnCreateConference, clients);
 
