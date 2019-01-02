@@ -7,11 +7,11 @@ namespace ServerApp.Core
     {
         private bool _isSoundMute;
 
-        public Client() { }
+        public Client() => _isSoundMute = true;
 
         public string Nickname;
         public Conference Conference;
-        public bool IsSoundMute { get => _isSoundMute; set { _isSoundMute = value;  IsSoundMuteSwitched?.Invoke(this, new IsSoundeMuteEventArgs(value)); } }
+        public bool IsSoundMute { get => _isSoundMute; set { _isSoundMute = value; IsSoundMuteSwitched?.Invoke(this, new IsSoundeMuteEventArgs(value)); } }
 
         public event EventHandler<IsSoundeMuteEventArgs> IsSoundMuteSwitched;
     }

@@ -23,6 +23,7 @@ namespace ServerApp.Core
         public RemoteProcedure<IEnumerable<string>> SendOnlineUsers { get; private set; }
         public RemoteProcedure<IEnumerable<byte>> SendSoundBytes { get; private set; }
         public RemoteProcedure<int, string, IEnumerable<string>> SendRequestToEntryConference { get; private set; }
+        public RemoteProcedure<int, string, IEnumerable<string>> SendRequestToCreateConference { get; private set; }
 
         protected override void InitializeLocalProcedures()
         {
@@ -39,11 +40,13 @@ namespace ServerApp.Core
             SendOnlineUsers = DefineRemoteProcedure(IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
             SendSoundBytes = DefineRemoteProcedure(ReliableBitConverter.GetInstance(IEnumerableVariableLengthBitConverter.GetInstance(ByteBitConverter.Instance)));
             SendRequestToEntryConference = DefineRemoteProcedure(Int32BitConverter.Instance, StringBitConverter.ASCIIReliableInstance, IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
+            SendRequestToCreateConference = DefineRemoteProcedure(Int32BitConverter.Instance, StringBitConverter.ASCIIReliableInstance, IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
         }
 
-        private void CreateConference(Client creator, IEnumerable<Client> clients)
+        private void CreateConference(Client creator, IEnumerable<Client> clients, out int id)
         {
-            Conference conference = new Conference(creator, clients, out int id);
+            Conference conference = new Conference(creator, clients, out id);
+            creator.Conference = conference;
             _conferences.Add(id, conference);
         }
 
@@ -61,7 +64,10 @@ namespace ServerApp.Core
         private void RequestOnCreateConference(Client client, IEnumerable<string> users)
         {
             if (client.Conference == null)
-                CreateConference(client, _authorizedClients.Where(x => users.Contains(x.Nickname)));
+            {
+                CreateConference(client, _authorizedClients.Where(x => users.Contains(x.Nickname)), out int id);
+                TCPCall(SendRequestToCreateConference, id, client.Nickname, users, client);
+            }
         }
         private void ResponseOnEntryConference(Client client, int id, bool state)
         {
@@ -73,6 +79,7 @@ namespace ServerApp.Core
                     {
                         client.Conference = conference;
                         user.InConference = true;
+                        TCPCall(SendRequestToCreateConference, conference.Id, conference.Creator.Client.Nickname, conference.Clients.Keys.Select(x => x.Nickname), client);
                     }
                 }
             }

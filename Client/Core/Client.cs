@@ -37,6 +37,7 @@ namespace ClientApp.Core
             DefineLocalProcedure(true, GetOnlineUsers, IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
             DefineLocalProcedure(true, GetSoundBytes, ReliableBitConverter.GetInstance(IEnumerableVariableLengthBitConverter.GetInstance(ByteBitConverter.Instance)));
             DefineLocalProcedure(true, GetRequestToEntryConference, Int32BitConverter.Instance, StringBitConverter.ASCIIReliableInstance, IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
+            DefineLocalProcedure(true, GetRequestToCreateConference, Int32BitConverter.Instance, StringBitConverter.ASCIIReliableInstance, IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
         }
         protected override void InitializeRemoteProcedures()
         {
@@ -52,6 +53,7 @@ namespace ClientApp.Core
         private void GetOnlineUsers(IEnumerable<string> names) => OnlineUsersUpdated?.Invoke(this, new LogInEventArgs(names));
         private void GetSoundBytes(IEnumerable<byte> bytes) => _bufferedWaveProvider.AddSamples(bytes.ToArray(), 0, bytes.Count());
         private void GetRequestToEntryConference(int id, string creator, IEnumerable<string> names) => OnGetRequestToEntryConference?.Invoke(this, new EntryConferenceEventArgs(id, creator, names));
+        private void GetRequestToCreateConference(int id, string creator, IEnumerable<string> names) => OnGetRequestToCreateConference?.Invoke(this, new EntryConferenceEventArgs(id, creator, names));
         private void WaveIn_RecordingStopped(object sender, StoppedEventArgs e) => throw new NotImplementedException();
         private void WaveIn_DataAvailable(object sender, WaveInEventArgs e)
         {
@@ -92,5 +94,6 @@ namespace ClientApp.Core
         public event EventHandler OnLogInError;
         public event EventHandler<LogInEventArgs> OnlineUsersUpdated;
         public event EventHandler<EntryConferenceEventArgs> OnGetRequestToEntryConference;
+        public event EventHandler<EntryConferenceEventArgs> OnGetRequestToCreateConference;
     }
 }

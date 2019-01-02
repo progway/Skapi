@@ -31,7 +31,10 @@ namespace ServerApp.Core
             _soundBuffer = new Queue<SoundBufferItem>();
             id = _idController.GetID();
             Id = id;
-            Creator = new ConferenceUser(creator);
+            Creator = new ConferenceUser(creator)
+            {
+                InConference = true
+            };
             Clients = clients.Select(client => new ConferenceUser(client)).ToDictionary(x => x.Client) ?? throw new ArgumentNullException(nameof(clients));
             foreach (ConferenceUser user in Clients.Values)
                 user.SendRequestToEnterConference(Id, Creator, Clients.Values.ToList());

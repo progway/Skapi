@@ -12,11 +12,13 @@ namespace ClientApp.ViewModel
         {
             Model = new RootModel();
             Model.OnGetRequestToEntryConference += Model_OnGetRequestToEntryConference;
+            Model.OnGetRequestToCreateConference += Model_OnGetRequestToCreateConference;
             Connect = new Command(OnConnect);
             UserCall = new Command<ClientModel>(OnUserCall);
         }
 
-        private void Model_OnGetRequestToEntryConference(object sender, EntryConferenceEventArgs e) => new ConferenceView(new ConferenceModel(Model, e.Id, e.Creator, e.Users)).ShowDialog();
+        private void Model_OnGetRequestToEntryConference(object sender, EntryConferenceEventArgs e) => Model.ResponceOnEntryConference(e.Id, true);
+        private void Model_OnGetRequestToCreateConference(object sender, EntryConferenceEventArgs e) => new ConferenceView(new ConferenceModel(Model, e.Id, e.Creator, e.Users)).Show();
 
         public RootModel Model { get; }
 

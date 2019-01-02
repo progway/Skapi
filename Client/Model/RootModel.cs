@@ -2,6 +2,7 @@
 using Noname.ComponentModel;
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
 
 namespace ClientApp.Model
@@ -16,6 +17,7 @@ namespace ClientApp.Model
         public string Nickname { get; set; }
         public ObservableCollection<ClientModel> OnlineUsers { get; set; }
         public event EventHandler<EntryConferenceEventArgs> OnGetRequestToEntryConference;
+        public event EventHandler<EntryConferenceEventArgs> OnGetRequestToCreateConference;
         public bool IsMicrophoneActive { get => _client.IsMicrophoneActive; set => _client.IsMicrophoneActive = value; }
 
         public void Connect(string address, int port)
@@ -27,9 +29,12 @@ namespace ClientApp.Model
             _client.OnLogInError += _client_OnLogInError;
             _client.OnlineUsersUpdated += _client_OnlineUsersUpdated;
             _client.OnGetRequestToEntryConference += _client_OnGetRequestToEntryConference;
+            _client.OnGetRequestToCreateConference += _client_OnGetRequestToCreateConference;
             _client.Start();
         }
+
         public void Call(ClientModel clientModel) => _client.Call(clientModel.Name.Value);
+        public void ResponceOnEntryConference(int id, bool state) => _client.TCPCall(_client.ResponseOnEntryConference, id, state);
 
         private void _client_Connected()
         {
@@ -41,9 +46,11 @@ namespace ClientApp.Model
         private void _client_OnLogInError(object sender, EventArgs e) => MessageBox.Show("Govno nickname! Please, try to create new nickname");
         private void _client_OnlineUsersUpdated(object sender, LogInEventArgs e)
         {
-            foreach (string item in e.Users)
+            OnlineUsers.Clear();
+            foreach (string item in e.Users.Where(x => x != Nickname))
                 OnlineUsers.Add(new ClientModel(item));
         }
         private void _client_OnGetRequestToEntryConference(object sender, EntryConferenceEventArgs e) => OnGetRequestToEntryConference?.Invoke(this, e);
+        private void _client_OnGetRequestToCreateConference(object sender, EntryConferenceEventArgs e) => OnGetRequestToCreateConference?.Invoke(this, e);
     }
 }
