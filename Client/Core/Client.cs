@@ -2,7 +2,6 @@
 using Noname.BitConversion;
 using Noname.BitConversion.System;
 using Noname.BitConversion.System.Collections.Generic;
-using Noname.ComponentModel;
 using Noname.Net.RPC;
 using System;
 using System.Collections.Generic;
@@ -19,9 +18,9 @@ namespace ClientApp.Core
         private WaveOutEvent _waveOut;
         private bool _isSoundActive;
 
-        public Client(string ipAddress, int port) : base(ipAddress, port) { }
+        public Client(string ipAddress, int port) : base(ipAddress, port) => IsMicrophoneActive = true;
 
-        public bool IsMicrophoneActive { get; set;  }
+        public bool IsMicrophoneActive { get; set; }
         public bool IsSoundActive { get => _isSoundActive; set { _isSoundActive = value; TCPCall(SwitchSoundState, value); } }
 
         public RemoteProcedure<string> LogIn { get; private set; }
@@ -53,14 +52,18 @@ namespace ClientApp.Core
         private void GetOnlineUsers(IEnumerable<string> names) => OnlineUsersUpdated?.Invoke(this, new LogInEventArgs(names));
         private void GetSoundBytes(IEnumerable<byte> bytes) => _bufferedWaveProvider.AddSamples(bytes.ToArray(), 0, bytes.Count());
         private void GetRequestToEntryConference(int id, string creator, IEnumerable<string> names) => OnGetRequestToEntryConference?.Invoke(this, new EntryConferenceEventArgs(id, creator, names));
-        private void GetRequestToCreateConference(int id, string creator, IEnumerable<string> names) => OnGetRequestToCreateConference?.Invoke(this, new EntryConferenceEventArgs(id, creator, names));
+        private void GetRequestToCreateConference(int id, string creator, IEnumerable<string> names)
+        {
+            MicrophoneOn();
+            OnGetRequestToCreateConference?.Invoke(this, new EntryConferenceEventArgs(id, creator, names));
+        }
         private void WaveIn_RecordingStopped(object sender, StoppedEventArgs e) => throw new NotImplementedException();
         private void WaveIn_DataAvailable(object sender, WaveInEventArgs e)
         {
-            if(IsMicrophoneActive)
+            if (IsMicrophoneActive)
                 UDPCall(SendMicrophoneBytes, e.Buffer);
         }
-         
+
         public void MicrophoneOn()
         {
             _bufferedWaveProvider = new BufferedWaveProvider(_waveFormat);
