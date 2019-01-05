@@ -35,6 +35,11 @@ namespace ClientApp.Model
 
         public void Call(ClientModel clientModel) => _client.Call(clientModel.Name.Value);
         public void ResponceOnEntryConference(int id, bool state) => _client.TCPCall(_client.ResponseOnEntryConference, id, state);
+        public void Stop()
+        {
+            if (_client != null)
+                _client.Stop();
+        }
 
         private void _client_Connected()
         {

@@ -24,6 +24,9 @@ namespace ClientApp.View
         {
             InitializeComponent();
             DataContext = new RootViewModel();
+            Closed += RootView_Closed;
         }
+
+        private void RootView_Closed(object sender, EventArgs e) => ((RootViewModel)DataContext).Model.Stop();
     }
 }
