@@ -1,5 +1,4 @@
-﻿using ClientApp.ViewModel;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,22 +10,19 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace ClientApp.View
 {
     /// <summary>
-    /// Interaction logic for RootView.xaml
+    /// Interaction logic for Conference.xaml
     /// </summary>
-    public partial class RootView : Window
+    public partial class Conference : UserControl
     {
-        public RootView()
+        public Conference()
         {
             InitializeComponent();
-            DataContext = new RootVM();
-            Closed += RootView_Closed;
         }
-
-        private void RootView_Closed(object sender, EventArgs e) => Network.Stop();
     }
 }

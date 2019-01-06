@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ServerApp.Core
 {
@@ -14,6 +12,7 @@ namespace ServerApp.Core
 
         static public void SendRequestToEnterConference(int id, Client recipient, Client creator, IEnumerable<Client> clients) => _server.TCPCall(_server.SendRequestToEntryConference, id, creator.Nickname, clients.Select(x => x.Nickname), recipient);
         static public void SendSoundBytes(IEnumerable<byte> bytes, IEnumerable<Client> clients) => _server.UDPCall(_server.SendSoundBytes, bytes, clients);
+        static public void UpdateConferenceUsers(int idConference) => _server.UpdateConferenceUsers(idConference);
         static public void Stop() => _server.Stop();
     }
 }

@@ -1,4 +1,5 @@
-﻿using ClientApp.ViewModel;
+﻿using ClientApp.Core;
+using ClientApp.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,17 +17,19 @@ using System.Windows.Shapes;
 namespace ClientApp.View
 {
     /// <summary>
-    /// Interaction logic for RootView.xaml
+    /// Interaction logic for Request.xaml
     /// </summary>
-    public partial class RootView : Window
+    public partial class Request : Window
     {
-        public RootView()
+        private event EventHandler _close;
+
+        public Request(EntryConferenceEventArgs param)
         {
             InitializeComponent();
-            DataContext = new RootVM();
-            Closed += RootView_Closed;
+            _close += Request__close;  
+            DataContext = new RequestVM(param, _close);
         }
 
-        private void RootView_Closed(object sender, EventArgs e) => Network.Stop();
+        private void Request__close(object sender, EventArgs e) => Close();
     }
 }

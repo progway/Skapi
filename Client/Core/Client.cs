@@ -6,68 +6,21 @@ using Noname.Net.RPC;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace ClientApp.Core
 {
     public class Client : RPCClient
     {
-        private readonly WaveFormat _waveFormat = new WaveFormat(44100, 1);
+        private readonly WaveFormat _waveFormat;
         private BufferedWaveProvider _bufferedWaveProvider;
         private WaveInEvent _waveIn;
         private WaveOutEvent _waveOut;
         private bool _isSoundActive;
 
-        public Client(string ipAddress, int port) : base(ipAddress, port) => IsMicrophoneActive = true;
-
-        public bool IsMicrophoneActive { get; set; }
-        public bool IsSoundActive { get => _isSoundActive; set { _isSoundActive = value; TCPCall(SwitchSoundState, value); } }
-
-        public RemoteProcedure<string> LogIn { get; private set; }
-        public RemoteProcedure<IEnumerable<byte>> SendMicrophoneBytes { get; private set; }
-        public RemoteProcedure RequestOnGetOnlineUsers { get; private set; }
-        public RemoteProcedure<bool> SwitchSoundState { get; private set; }
-        public RemoteProcedure<IEnumerable<string>> RequestOnCreateConference { get; private set; }
-        public RemoteProcedure<int, bool> ResponseOnEntryConference { get; private set; }
-
-        protected override void InitializeLocalProcedures()
+        public Client(string ipAddress, int port) : base(ipAddress, port)
         {
-            DefineLocalProcedure(true, LogInError);
-            DefineLocalProcedure(true, GetOnlineUsers, IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
-            DefineLocalProcedure(true, GetSoundBytes, ReliableBitConverter.GetInstance(IEnumerableVariableLengthBitConverter.GetInstance(ByteBitConverter.Instance)));
-            DefineLocalProcedure(true, GetRequestToEntryConference, Int32BitConverter.Instance, StringBitConverter.ASCIIReliableInstance, IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
-            DefineLocalProcedure(true, GetRequestToCreateConference, Int32BitConverter.Instance, StringBitConverter.ASCIIReliableInstance, IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
-        }
-        protected override void InitializeRemoteProcedures()
-        {
-            LogIn = DefineRemoteProcedure(StringBitConverter.ASCIIReliableInstance);
-            SendMicrophoneBytes = DefineRemoteProcedure(ReliableBitConverter.GetInstance(IEnumerableVariableLengthBitConverter.GetInstance(ByteBitConverter.Instance)));
-            RequestOnGetOnlineUsers = DefineRemoteProcedure();
-            SwitchSoundState = DefineRemoteProcedure(BooleanBitConverter.Instance);
-            RequestOnCreateConference = DefineRemoteProcedure(IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
-            ResponseOnEntryConference = DefineRemoteProcedure(Int32BitConverter.Instance, BooleanBitConverter.Instance);
-        }
-
-        private void LogInError() => OnLogInError?.Invoke(this, EventArgs.Empty);
-        private void GetOnlineUsers(IEnumerable<string> names) => OnlineUsersUpdated?.Invoke(this, new LogInEventArgs(names));
-        private void GetSoundBytes(IEnumerable<byte> bytes) => _bufferedWaveProvider.AddSamples(bytes.ToArray(), 0, bytes.Count());
-        private void GetRequestToEntryConference(int id, string creator, IEnumerable<string> names) => OnGetRequestToEntryConference?.Invoke(this, new EntryConferenceEventArgs(id, creator, names));
-        private void GetRequestToCreateConference(int id, string creator, IEnumerable<string> names)
-        {
-            MicrophoneOn();
-            OnGetRequestToCreateConference?.Invoke(this, new EntryConferenceEventArgs(id, creator, names));
-        }
-        private void WaveIn_RecordingStopped(object sender, StoppedEventArgs e) => throw new NotImplementedException();
-        private void WaveIn_DataAvailable(object sender, WaveInEventArgs e)
-        {
-            if (IsMicrophoneActive)
-                UDPCall(SendMicrophoneBytes, e.Buffer);
-        }
-
-        public void MicrophoneOn()
-        {
+            _waveFormat = new WaveFormat(44100, 1);
             _bufferedWaveProvider = new BufferedWaveProvider(_waveFormat);
-
             _waveIn = new WaveInEvent()
             {
                 DeviceNumber = 0,
@@ -83,12 +36,67 @@ namespace ClientApp.Core
                 DesiredLatency = 100,
             };
             _waveOut.Init(_bufferedWaveProvider);
+        }
 
-            Task task = new Task(() => { _waveIn.StartRecording(); while (true) { } });
-            task.Start();
+        public bool IsMicrophoneActive { get; set; }
+        public bool IsSoundActive { get => _isSoundActive; set { _isSoundActive = value; TCPCall(SwitchSoundState, value); } }
 
-            Task task2 = new Task(() => { _waveOut.Play(); while (true) { } });
-            task2.Start();
+        public RemoteProcedure<string> LogIn { get; private set; }
+        public RemoteProcedure<IEnumerable<byte>> SendMicrophoneBytes { get; private set; }
+        public RemoteProcedure RequestOnGetOnlineUsers { get; private set; }
+        public RemoteProcedure<bool> SwitchSoundState { get; private set; }
+        public RemoteProcedure<IEnumerable<string>> RequestOnCreateConference { get; private set; }
+        public RemoteProcedure<int, bool> ResponseOnEntryConference { get; private set; }
+        public RemoteProcedure ExitConference { get; private set; }
+        public RemoteProcedure<string> AddUserToConference { get; private set; }
+
+        protected override void InitializeLocalProcedures()
+        {
+            DefineLocalProcedure(true, LogInError);
+            DefineLocalProcedure(true, GetOnlineUsers, IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
+            DefineLocalProcedure(true, GetSoundBytes, ReliableBitConverter.GetInstance(IEnumerableVariableLengthBitConverter.GetInstance(ByteBitConverter.Instance)));
+            DefineLocalProcedure(true, GetRequestToEntryConference, Int32BitConverter.Instance, StringBitConverter.ASCIIReliableInstance, IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
+            DefineLocalProcedure(true, GetRequestToCreateConference, Int32BitConverter.Instance, StringBitConverter.ASCIIReliableInstance, IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
+            DefineLocalProcedure(true, GetUpdatedConferenceUsers, IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
+        }
+        protected override void InitializeRemoteProcedures()
+        {
+            LogIn = DefineRemoteProcedure(StringBitConverter.ASCIIReliableInstance);
+            SendMicrophoneBytes = DefineRemoteProcedure(ReliableBitConverter.GetInstance(IEnumerableVariableLengthBitConverter.GetInstance(ByteBitConverter.Instance)));
+            RequestOnGetOnlineUsers = DefineRemoteProcedure();
+            SwitchSoundState = DefineRemoteProcedure(BooleanBitConverter.Instance);
+            RequestOnCreateConference = DefineRemoteProcedure(IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
+            ResponseOnEntryConference = DefineRemoteProcedure(Int32BitConverter.Instance, BooleanBitConverter.Instance);
+            ExitConference = DefineRemoteProcedure();
+            AddUserToConference = DefineRemoteProcedure(StringBitConverter.ASCIIReliableInstance);
+        }
+
+        private void LogInError() => OnLogInError?.Invoke(this, EventArgs.Empty);
+        private void GetOnlineUsers(IEnumerable<string> names) => OnlineUsersUpdated?.Invoke(this, new LogInEventArgs(names));
+        private void GetSoundBytes(IEnumerable<byte> bytes) => _bufferedWaveProvider.AddSamples(bytes.ToArray(), 0, bytes.Count());
+        private void GetRequestToEntryConference(int id, string creator, IEnumerable<string> names) => OnGetRequestToEntryConference?.Invoke(this, new EntryConferenceEventArgs(id, creator, names));
+        private void GetRequestToCreateConference(int id, string creator, IEnumerable<string> names)
+        {
+            MicrophoneOn();
+            OnGetRequestToCreateConference?.Invoke(this, new EntryConferenceEventArgs(id, creator, names));
+        }
+        private void GetUpdatedConferenceUsers(IEnumerable<string> names) => OnGetUpdatedConferenceUsers?.Invoke(this, new UpdatedConferenceEventArgscs(names));
+        private void WaveIn_RecordingStopped(object sender, StoppedEventArgs e) => throw new NotImplementedException();
+        private void WaveIn_DataAvailable(object sender, WaveInEventArgs e)
+        {
+            if (IsMicrophoneActive)
+                UDPCall(SendMicrophoneBytes, e.Buffer);
+        }
+
+        public void MicrophoneOn()
+        {
+            _waveIn.StartRecording();
+            _waveOut.Play();
+        }
+        public void MicrophoneOff()
+        {
+            _waveIn.StopRecording();
+            _waveOut.Stop();
         }
         public void Authorization(string nickname) => TCPCall(LogIn, nickname);
         public void Call(string client) => TCPCall(RequestOnCreateConference, new string[] { client });
@@ -98,5 +106,6 @@ namespace ClientApp.Core
         public event EventHandler<LogInEventArgs> OnlineUsersUpdated;
         public event EventHandler<EntryConferenceEventArgs> OnGetRequestToEntryConference;
         public event EventHandler<EntryConferenceEventArgs> OnGetRequestToCreateConference;
+        public event EventHandler<UpdatedConferenceEventArgscs> OnGetUpdatedConferenceUsers;
     }
 }

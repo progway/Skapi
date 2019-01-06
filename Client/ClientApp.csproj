@@ -43,6 +43,8 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -63,12 +65,27 @@
     </ApplicationDefinition>
     <Compile Include="Core\EntryConferenceEventArgs.cs" />
     <Compile Include="Core\LogInEventArgs.cs" />
+    <Compile Include="Core\UpdatedConferenceEventArgscs.cs" />
     <Compile Include="Model\ConferenceModel.cs" />
     <Compile Include="Model\ClientModel.cs" />
-    <Compile Include="ViewModel\ConferenceViewModel.cs" />
-    <Compile Include="ViewModel\RootViewModel.cs" />
-    <Compile Include="View\ConferenceView.xaml.cs">
-      <DependentUpon>ConferenceView.xaml</DependentUpon>
+    <Compile Include="Data.cs" />
+    <Compile Include="Network.cs" />
+    <Compile Include="ViewModel\ConferenceVM.cs" />
+    <Compile Include="ViewModel\RequestVM.cs" />
+    <Compile Include="ViewModel\MenuVM.cs" />
+    <Compile Include="ViewModel\ConnectionVM.cs" />
+    <Compile Include="ViewModel\RootVM.cs" />
+    <Compile Include="View\Conference.xaml.cs">
+      <DependentUpon>Conference.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\Connection.xaml.cs">
+      <DependentUpon>Connection.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\Menu.xaml.cs">
+      <DependentUpon>Menu.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\Request.xaml.cs">
+      <DependentUpon>Request.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\RootView.xaml.cs">
       <DependentUpon>RootView.xaml</DependentUpon>
@@ -78,9 +95,21 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Core\Client.cs" />
-    <Page Include="View\ConferenceView.xaml">
-      <Generator>MSBuild:Compile</Generator>
+    <Page Include="View\Conference.xaml">
       <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\Connection.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\Menu.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\Request.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\RootView.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -88,7 +117,6 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Model\RootModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

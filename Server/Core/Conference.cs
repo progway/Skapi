@@ -40,10 +40,7 @@ namespace ServerApp.Core
                 user.SendRequestToEnterConference(Id, Creator, Clients.Values.ToList());
             Clients.Add(Creator.Client, Creator);
             foreach (Client client in Clients.Keys)
-            {
                 client.IsSoundMuteSwitched += Client_IsSoundMuteSwitched;
-                _soundOnUsers.Add(client);
-            }
         }
 
         private void Client_IsSoundMuteSwitched(object sender, IsSoundeMuteEventArgs e)
@@ -79,11 +76,23 @@ namespace ServerApp.Core
         {
             if (Clients.Keys.Contains(client))
                 return false;
-
-            Clients.Add(client, new ConferenceUser(client));
+            ConferenceUser conferenceUser = new ConferenceUser(client);
+            Clients.Add(client, conferenceUser);
+            conferenceUser.SendRequestToEnterConference(Id, Creator, Clients.Values.ToList());
+            client.IsSoundMuteSwitched += Client_IsSoundMuteSwitched;
             return true;
         }
-        public void RemoveClient(Client client) => Clients.Remove(client);
+        public void RemoveClient(Client client)
+        {
+            _soundOnUsers.Remove(client);
+            if (!Clients.TryGetValue(client, out ConferenceUser conferenceUser))
+                throw new Exception();
+            conferenceUser.InConference = false; 
+            NetworkManager.UpdateConferenceUsers(Id);
+            client.Conference = null;
+            if(Clients.Count == 0)
+                Destroy();
+        }
         public void GetMicrophoneBytes(Client client, IEnumerable<byte> bytes)
         {
             _soundBuffer.Enqueue(new SoundBufferItem(client, bytes));

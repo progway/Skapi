@@ -17,6 +17,7 @@ namespace ServerApp.Core
             Start();
             _authorizedClients = new List<Client>();
             _conferences = new Dictionary<int, Conference>();
+            ClientDisconnected += Server_ClientDisconnected;
         }
 
         public RemoteProcedure LogInError { get; private set; }
@@ -24,6 +25,7 @@ namespace ServerApp.Core
         public RemoteProcedure<IEnumerable<byte>> SendSoundBytes { get; private set; }
         public RemoteProcedure<int, string, IEnumerable<string>> SendRequestToEntryConference { get; private set; }
         public RemoteProcedure<int, string, IEnumerable<string>> SendRequestToCreateConference { get; private set; }
+        public RemoteProcedure<IEnumerable<string>> SendUpdatedConferenceUsers { get; private set; }
 
         protected override void InitializeLocalProcedures()
         {
@@ -33,6 +35,8 @@ namespace ServerApp.Core
             DefineLocalProcedure(true, SwitchSoundState, BooleanBitConverter.Instance);
             DefineLocalProcedure(true, RequestOnCreateConference, IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
             DefineLocalProcedure(true, ResponseOnEntryConference, Int32BitConverter.Instance, BooleanBitConverter.Instance);
+            DefineLocalProcedure(true, ExitConference);
+            DefineLocalProcedure(true, AddUserToConference, StringBitConverter.ASCIIReliableInstance);
         }
         protected override void InitializeRemoteProcedures()
         {
@@ -41,6 +45,7 @@ namespace ServerApp.Core
             SendSoundBytes = DefineRemoteProcedure(ReliableBitConverter.GetInstance(IEnumerableVariableLengthBitConverter.GetInstance(ByteBitConverter.Instance)));
             SendRequestToEntryConference = DefineRemoteProcedure(Int32BitConverter.Instance, StringBitConverter.ASCIIReliableInstance, IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
             SendRequestToCreateConference = DefineRemoteProcedure(Int32BitConverter.Instance, StringBitConverter.ASCIIReliableInstance, IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
+            SendUpdatedConferenceUsers = DefineRemoteProcedure(IEnumerableReliableBitConverter.GetInstance(StringBitConverter.ASCIIReliableInstance));
         }
 
         private void CreateConference(Client creator, IEnumerable<Client> clients, out int id)
@@ -49,7 +54,6 @@ namespace ServerApp.Core
             creator.Conference = conference;
             _conferences.Add(id, conference);
         }
-
         private void LogIn(Client client, string nickname)
         {
             if (string.IsNullOrEmpty(nickname) || _authorizedClients.Exists(x => x.Nickname == nickname))
@@ -66,7 +70,7 @@ namespace ServerApp.Core
             if (client.Conference == null)
             {
                 CreateConference(client, _authorizedClients.Where(x => users.Contains(x.Nickname)), out int id);
-                TCPCall(SendRequestToCreateConference, id, client.Nickname, users, client);
+                TCPCall(SendRequestToCreateConference, id, client.Nickname, Enumerable.Empty<string>(), client);
             }
         }
         private void ResponseOnEntryConference(Client client, int id, bool state)
@@ -80,6 +84,7 @@ namespace ServerApp.Core
                         client.Conference = conference;
                         user.InConference = true;
                         TCPCall(SendRequestToCreateConference, conference.Id, conference.Creator.Client.Nickname, conference.Clients.Keys.Select(x => x.Nickname), client);
+                        NetworkManager.UpdateConferenceUsers(conference.Id);
                     }
                 }
             }
@@ -88,6 +93,35 @@ namespace ServerApp.Core
                 if (_conferences.TryGetValue(id, out Conference conference))
                     conference.Clients.Remove(client);
             }
+        }
+        private void Server_ClientDisconnected(Client client)
+        {
+            _authorizedClients.Remove(client);
+            if (client.Conference == null)
+                return;
+            client.Conference.RemoveClient(client);
+        }
+        private void ExitConference(Client client) => client.Conference.RemoveClient(client);
+        private void AddUserToConference(Client client, string nickname)
+        {
+            if (client.Conference.Clients.Select(x => x.Value.Client.Nickname).Contains(nickname))
+                return;
+            if (!_authorizedClients.Select(x=> x.Nickname).Contains(nickname))
+                return;
+            Client adder = _authorizedClients.First(x => x.Nickname == nickname);
+            if (adder.Conference != null)
+                return;
+            client.Conference.AddClient(adder);
+        }
+
+        public void UpdateConferenceUsers(int idConference)
+        {
+            if (!_conferences.TryGetValue(idConference, out Conference conference))
+                throw new System.Exception("Govno. Stranno chto proizoshllo:(");
+            IEnumerable<ConferenceUser> recipients = conference.Clients.Values.Where(x => x.InConference);
+            IEnumerable<string> users = recipients.Select(x => x.Client.Nickname);
+            foreach (ConferenceUser conferenceUser in recipients)
+                TCPCall(SendUpdatedConferenceUsers, users, conferenceUser.Client);
         }
     }
 }
