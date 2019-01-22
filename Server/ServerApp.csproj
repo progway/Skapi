@@ -8,12 +8,13 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>ServerApp</RootNamespace>
     <AssemblyName>ServerApp</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -105,9 +106,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Libraries\ILibrary\ILibrary\ILibrary.csproj">
+    <ProjectReference Include="..\..\..\Libraries\Devdeb\Devdeb\Devdeb.csproj">
       <Project>{f3ae47d4-3da5-4390-983a-4004c35b1b03}</Project>
-      <Name>ILibrary</Name>
+      <Name>Devdeb</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Libraries\Noname\Noname\Noname.csproj">
       <Project>{95A5D098-A1B4-4951-9AFE-EB2BC4AB230A}</Project>
