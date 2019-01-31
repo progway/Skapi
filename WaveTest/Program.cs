@@ -16,7 +16,6 @@ namespace WaveTest
         private static void Main(string[] args)
         {
             _bufferedWaveProvider = new BufferedWaveProvider(_waveFormat);
-
             _waveIn = new WaveInEvent()
             {
                 DeviceNumber = 0,
